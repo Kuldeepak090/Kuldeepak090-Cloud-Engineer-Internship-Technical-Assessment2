@@ -1,0 +1,71 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Deploy static resume website on EC2 with Nginx using user-selected VPC, Subnet and AMI.
+
+Parameters:
+
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: Select an existing VPC
+
+  SubnetId:
+    Type: AWS::EC2::Subnet::Id
+    Description: Select a public subnet where EC2 will launch
+
+  AmiId:
+    Type: AWS::EC2::Image::Id
+    Description: Select an AMI (Amazon Linux recommended)
+
+  KeyPairName:
+    Type: AWS::EC2::KeyPair::KeyName
+    Description: Select EC2 KeyPair for SSH access
+
+Resources:
+
+  WebServerSG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow HTTP only
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+
+  EC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t3.micro
+      KeyName: !Ref KeyPairName
+      SubnetId: !Ref SubnetId
+      ImageId: !Ref AmiId
+      SecurityGroupIds:
+        - !Ref WebServerSG
+      Tags:
+        - Key: Name
+          Value: ResumeWebServer
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          yum update -y
+          yum install -y nginx
+          systemctl enable nginx
+          systemctl start nginx
+
+          cat <<EOF > /usr/share/nginx/html/index.html
+          <html>
+          <head><title>My Resume</title></head>
+          <body style="font-family: Arial;">
+            <h1>Welcome to My Resume Website</h1>
+            <p>Hosted using Nginx on AWS EC2.</p>
+          </body>
+          </html>
+          EOF
+
+Outputs:
+  WebsiteURL:
+    Description: Public URL of your static resume site
+    Value: !Sub "http://${EC2Instance.PublicIp}"
