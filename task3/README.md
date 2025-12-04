@@ -11,6 +11,7 @@ b) Target group
 <img width="1915" height="735" alt="taggetgroup" src="https://github.com/user-attachments/assets/c8422a93-5238-44ad-b292-986f45547b88" />
 
 c) Auto Scaling Group
+<img width="1907" height="652" alt="autoscaling" src="https://github.com/user-attachments/assets/42bc60b1-0124-458c-9ff4-9af42d22b70f" />
 
 
 d) EC2 instances launched via ASG
